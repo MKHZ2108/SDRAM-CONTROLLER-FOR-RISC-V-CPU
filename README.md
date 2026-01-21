@@ -1,104 +1,100 @@
-# SRAM Interface with RISC-V CPU
+# SRAM Interface with RISC-V SoC
 
-## 🏫 Giới thiệu (Introduction)
+## 📖 Giới thiệu (Introduction)
 Dự án này là đồ án môn học **Thiết kế Logic (Logic Design)** tại **Trường Đại học Bách Khoa ĐHQG-HCM**.
 
-Mục tiêu của dự án là thiết kế một hệ thống SoC (System-on-Chip) trên FPGA, bao gồm:
-* Vi xử lý **PicoRV32** (RISC-V core).
-* Bộ điều khiển **SRAM Controller** giao tiếp với Block RAM.
-* Giao tiếp **UART** để truyền nhận dữ liệu với máy tính.
-* Các ngoại vi Memory-Mapped I/O (MMIO) như LED để hiển thị trạng thái.
+Mục tiêu của dự án là xây dựng một hệ thống SoC (System-on-Chip) hoàn chỉnh trên FPGA, tích hợp vi xử lý RISC-V và bộ điều khiển SRAM tùy biến để giao tiếp với Block RAM, cùng với giao tiếp UART để truyền nhận dữ liệu hình ảnh/tệp tin với máy tính.
 
-**Giảng viên hướng dẫn:** ThS. Phạm Kiều Nhật Anh
-
-### 👥 Nhóm thực hiện (Team Members)
-| Họ và tên | MSSV |
-|-----------|------|
-| Phạm Lê Minh Khôi | 2352622 |
-| Lê Chương Quyền | 2353034 |
-| Nguyễn Tuấn Ngọc | 2352815 |
+* **Giảng viên hướng dẫn:** ThS. Phạm Kiều Nhật Anh
+* **Sinh viên thực hiện:**
+  * Phạm Lê Minh Khôi - 2352622
+  * Lê Chương Quyền - 2353034
+  * Nguyễn Tuấn Ngọc - 2352815
 
 ---
 
 ## 🏗️ Kiến trúc hệ thống (System Architecture)
-Hệ thống được thiết kế theo mô hình SoC tích hợp trên FPGA với các module chính:
 
-### 1. PicoRV32 RISC-V Core
-* Sử dụng tập lệnh **RV32I** (32-bit integer).
-* Giao tiếp qua bus đơn giản: `mem_valid`, `mem_addr`, `mem_wdata`, `mem_rdata`, `mem_ready`.
+Hệ thống được thiết kế xoay quanh lõi **PicoRV32**, kết nối với các ngoại vi qua bus bộ nhớ đơn giản.
 
-### 2. SRAM Controller (BRAM Interface)
-* Chuyển đổi yêu cầu từ CPU thành thao tác đọc/ghi đồng bộ với **FPGA Block RAM**.
-* Sử dụng **Pipeline 2 tầng (2-stage pipeline)**:
-    * *Stage 1:* Bắt tín hiệu yêu cầu (Request Capture).
-    * *Stage 2:* Truy cập BRAM và phản hồi (BRAM Access & Response).
-* Cơ chế **Handshake**: Sử dụng tín hiệu `mem_ready` để stall CPU khi bộ nhớ đang bận, đảm bảo đồng bộ dữ liệu.
+### Sơ đồ khối tổng quát (Block Diagram)
+Hình dưới đây mô tả cấu trúc mức hệ thống của SoC, bao gồm PicoRV32 Core, SRAM Controller, UART và các thanh ghi ngoại vi:
 
-### 3. UART Interface (RX/TX)
-* **Cấu hình:** 115200 baud rate, 8 data bits, No parity, 1 stop bit (8N1).
-* **Cơ chế Flow Control:** Phần cứng tự động stall CPU (giữ `mem_ready = 0`) khi UART đang bận gửi (TX busy) hoặc chưa có dữ liệu để đọc (RX empty). Điều này giúp code C đơn giản hơn, không cần polling liên tục.
+![System Block Diagram](TOP%20LEVEL%20.png)
+*(Hình 4.1: Sơ đồ khối hệ thống thực thi trên FPGA)*
 
-### 4. Memory Map (Bản đồ bộ nhớ)
-Hệ thống sử dụng cơ chế Memory-Mapped I/O (MMIO) với địa chỉ cụ thể như sau:
+### Các thành phần chính:
+1.  **PicoRV32 RISC-V Core:**
+    * Tập lệnh: RV32I (32-bit integer).
+    * Vai trò: Điều khiển trung tâm, chạy firmware C để quản lý luồng dữ liệu.
+2.  **SRAM Controller (Custom Design):**
+    * Giao tiếp với FPGA Block RAM.
+    * Sử dụng **Pipeline 2 tầng** (Request -> Access) để đảm bảo đồng bộ timing.
+    * Cơ chế Handshake (`mem_ready`) giúp CPU tự động đợi (stall) khi bộ nhớ đang truy xuất.
+3.  **UART Interface (RX/TX):**
+    * Baudrate: 115200 (8N1).
+    * Tích hợp bộ đệm (FIFO) và flow control phần cứng, giúp truyền nhận dữ liệu tin cậy mà không cần ngắt (interrupt) phức tạp.
 
-| Module | Địa chỉ (Address) | Chức năng |
-|--------|-------------------|-----------|
-| **Instruction Memory**| `0x0000_0000` | Chứa mã lệnh chương trình |
-| **SRAM Data** | `0x0001_0000` | Vùng nhớ dữ liệu (lưu ảnh/file từ PC) |
-| **LED Register** | `0x1000_0000` | Điều khiển 8 LED đơn (Ghi) |
-| **UART TX** | `0x1000_0004` | Gửi dữ liệu ra PC (Ghi) |
-| **UART RX** | `0x1000_0008` | Đọc dữ liệu từ PC (Đọc) |
+---
+
+## ⚙️ Thiết kế chi tiết & RTL (Implementation)
+
+### 1. Sơ đồ RTL tổng quát (Top Level RTL)
+Kết quả tổng hợp mạch (Synthesis) của toàn bộ hệ thống (Level-0 Wrapper):
+
+![Top Level RTL Schematic](TOP%20LEVEL%20SCHEMATIC.png)
+*(Hình 4.2: Sơ đồ RTL sau khi tổng hợp module picorv32_top)*
+
+### 2. Chi tiết Bus MMIO và Giải mã địa chỉ
+Module `picorv32_mmio_bus` chịu trách nhiệm giải mã địa chỉ và điều hướng dữ liệu giữa CPU và các ngoại vi (SRAM, UART, LED):
+
+![MMIO Bus Schematic](MIMO%20BUS%20AND%20ADDRESS%20DECODING%20SCHEMATIC.png)
+*(Hình 4.3: Sơ đồ RTL chi tiết của Bus MMIO và Logic giải mã địa chỉ)*
 
 ---
 
 ## 🔄 Luồng hoạt động (Operation Flow)
-Firmware chạy trên PicoRV32 thực hiện quy trình "Loopback" để kiểm tra hệ thống:
 
-1.  **Khởi động (Startup):**
-    * Ghi giá trị `0x55` ra LED.
-2.  **Nhận dữ liệu (Data Reception):**
-    * Nhận liên tiếp N bytes từ PC qua UART RX.
-    * Lưu trữ vào SRAM.
-    * Ghi giá trị `0xCC` ra LED sau khi nhận xong.
-3.  **Gửi lại dữ liệu (Data Transmission):**
-    * Đọc dữ liệu từ SRAM.
-    * Gửi ngược lại PC qua UART TX.
-    * Ghi giá trị `0xAA` ra LED khi hoàn tất.
+Hệ thống hoạt động theo quy trình "Loopback" để kiểm chứng độ tin cậy. Firmware chạy trên RISC-V thực hiện các bước sau:
 
----
+1.  **Khởi động:** Ghi 0x55 ra LED.
+2.  **Nhận dữ liệu:** Chờ nhận bytes từ PC qua UART RX và lưu vào SRAM.
+3.  **Lưu trữ & Báo hiệu:** Sau khi nhận đủ, ghi 0xCC ra LED.
+4.  **Gửi lại:** Đọc dữ liệu từ SRAM và gửi ngược về PC qua UART TX.
+5.  **Kết thúc:** Ghi 0xAA ra LED.
 
-## 📊 Tài nguyên sử dụng (Resource Utilization)
-Kết quả tổng hợp (Synthesis) trên FPGA:
-
-* **PicoRV32 CPU:** ~927 LUTs, 574 FFs.
-* **SRAM Controller:** ~42 LUTs, 285 FFs.
-* **UART (RX+TX):** ~79 LUTs, 75 FFs.
-* **Tổng cộng:** ~1048 LUTs, 985 FFs, 64 BRAM tiles.
+![Firmware Processing Flow](Processing%20flow%20.png)
+*(Hình 4.7: Lưu đồ thuật toán xử lý của Firmware)*
 
 ---
 
-## 🛠️ Công cụ & Hướng dẫn (Tools & Usage)
+## 📊 Tài nguyên FPGA (Resource Utilization)
 
-### Công cụ sử dụng
-* **Hardware Design:** Verilog HDL.
-* **Software Toolchain:** RISC-V GCC (để biên dịch code C thành file `.hex`/`.mem`).
-* **Simulation:** ModelSim / Vivado Simulator.
-* **Utilities:** Python script (`make_mem.py`) để tạo file khởi tạo bộ nhớ; Python script để gửi/nhận file qua cổng Serial.
+Bảng dưới đây thống kê tài nguyên sử dụng trên FPGA sau khi tổng hợp:
 
-### Cách chạy mô phỏng/thực nghiệm
-1.  **Biên dịch Firmware:** Dùng GCC biên dịch code C và tạo file `.mem`.
-2.  **Synthesis:** Chạy tổng hợp mạch trên Vivado/Quartus và nạp bitstream xuống FPGA.
-3.  **Kết nối:** Cắm cáp USB-UART vào máy tính.
-4.  **Chạy Test:**
-    * Mở script Python trên PC để gửi một file ảnh (ví dụ 96kB).
-    * Quan sát LED trên board thay đổi từ `0x55` -> `0xCC` -> `0xAA`.
-    * Kiểm tra file nhận được trên PC có khớp với file gốc không.
+![FPGA Resource Utilization](FPGA%20RESOURCE%20UTILISATION%20AFTER%20SYNTHESIS.png)
+*(Bảng 1: Thống kê tài nguyên FPGA sau khi Synthesis)*
+
+* **PicoRV32 CPU:** Chiếm phần lớn tài nguyên Logic (927 LUTs).
+* **SRAM Controller & UART:** Sử dụng rất ít tài nguyên, tối ưu cho các thiết kế nhỏ gọn.
+* **Block RAM:** Sử dụng 64 tiles cho bộ nhớ Instruction/Data.
 
 ---
 
-## 📂 Cấu trúc thư mục (Folder Structure)
-* `src/`: Mã nguồn Verilog (PicoRV32, SRAM Controller, UART, Top-level).
-* `firmware/`: Mã nguồn C và Makefile cho vi xử lý.
-* `tb/`: Testbench cho mô phỏng.
-* `scripts/`: Các file Python hỗ trợ.
-* `docs/`: Báo cáo và tài liệu thiết kế.
+## 🚀 Hướng dẫn sử dụng (Getting Started)
+
+### Yêu cầu
+* **Phần cứng:** FPGA Development Board (có hỗ trợ Block RAM và UART).
+* **Phần mềm:** Vivado/Quartus (nạp mạch), RISC-V GCC Toolchain (biên dịch C).
+
+### Các bước chạy demo
+1.  **Clone dự án:**
+    ```bash
+    git clone [https://github.com/MKHZ2108/SDRAM-CONTROLLER-FOR-RISC-V-CPU.git](https://github.com/MKHZ2108/SDRAM-CONTROLLER-FOR-RISC-V-CPU.git)
+    ```
+2.  **Nạp Bitstream:** Mở project và nạp file bitstream xuống FPGA.
+3.  **Kết nối UART:** Kết nối cáp Serial với máy tính (Baud 115200).
+4.  **Chạy script test:** Dùng script Python để gửi file ảnh mẫu và kiểm tra kết quả loopback.
+
+---
+© 2026 Logic Design Project - HCMUT
