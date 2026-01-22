@@ -30,7 +30,7 @@ The system is built around the **PicoRV32** core, connected to peripherals via a
 #### Block Diagram
 The figure below illustrates the high-level architecture, including the CPU, SRAM Controller, UART, and Memory-Mapped I/O (MMIO).
 
-![System Block Diagram](TOP%20LEVEL%20.png)
+![System Block Diagram](images/TOP%20LEVEL%20.png)
 *(Figure 4.1: SoC Implementation Block Diagram)*
 
 #### Key Components:
@@ -121,7 +121,7 @@ Hệ thống được thiết kế xoay quanh lõi **PicoRV32**, kết nối v�
 #### Sơ đồ khối tổng quát
 Hình dưới đây mô tả cấu trúc mức hệ thống của SoC, bao gồm PicoRV32 Core, SRAM Controller, UART và các thanh ghi ngoại vi (MMIO):
 
-![System Block Diagram](TOP%20LEVEL%20.png)
+![System Block Diagram](images/TOP%20LEVEL%20.png)
 *(Hình 4.1: Sơ đồ khối hệ thống thực thi trên FPGA)*
 
 #### Các thành phần chính:
@@ -140,13 +140,13 @@ Hình dưới đây mô tả cấu trúc mức hệ thống của SoC, bao gồm
 #### 1. Sơ đồ RTL tổng quát
 Kết quả tổng hợp mạch (Synthesis) của toàn bộ hệ thống (Level-0 Wrapper):
 
-![Top Level RTL Schematic](TOP%20LEVEL%20SCHEMATIC.png)
+![Top Level RTL Schematic](images/TOP%20LEVEL%20SCHEMATIC.png)
 *(Hình 4.2: Sơ đồ RTL sau khi tổng hợp module picorv32_top)*
 
 #### 2. Chi tiết Bus MMIO và Giải mã địa chỉ
 Module `picorv32_mmio_bus` chịu trách nhiệm giải mã địa chỉ và điều hướng dữ liệu giữa CPU và các ngoại vi (SRAM, UART, LED):
 
-![MMIO Bus Schematic](MIMO%20BUS%20AND%20ADDRESS%20DECODING%20SCHEMATIC.png)
+![MMIO Bus Schematic](images/MIMO%20BUS%20AND%20ADDRESS%20DECODING%20SCHEMATIC.png)
 *(Hình 4.3: Sơ đồ RTL chi tiết của Bus MMIO và Logic giải mã địa chỉ)*
 
 ### 🔄 Luồng hoạt động (Kiểm tra Loopback)
@@ -158,13 +158,13 @@ Hệ thống hoạt động theo quy trình "Loopback" để kiểm chứng đ�
 4.  **Gửi lại:** Đọc dữ liệu từ SRAM và gửi ngược về PC qua UART TX.
 5.  **Kết thúc:** Ghi `0xAA` ra LED.
 
-![Firmware Processing Flow](Processing%20flow%20.png)
+![Firmware Processing Flow](images/Processing%20flow%20.png)
 *(Hình 4.7: Lưu đồ thuật toán xử lý của Firmware)*
 
 ### 📊 Tài nguyên FPGA
 Bảng dưới đây thống kê tài nguyên sử dụng trên FPGA sau khi tổng hợp:
 
-![FPGA Resource Utilization](FPGA%20RESOURCE%20UTILISATION%20AFTER%20SYNTHESIS.png)
+![FPGA Resource Utilization](images/FPGA%20RESOURCE%20UTILISATION%20AFTER%20SYNTHESIS.png)
 *(Bảng 1: Thống kê tài nguyên FPGA sau khi Synthesis)*
 
 * **PicoRV32 CPU:** Chiếm phần lớn tài nguyên Logic (927 LUTs).
@@ -191,4 +191,5 @@ Bảng dưới đây thống kê tài nguyên sử dụng trên FPGA sau khi t�
 
 ---
 © 2026 Logic Design Project - HCMUT
+
 
