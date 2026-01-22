@@ -49,13 +49,13 @@ The figure below illustrates the high-level architecture, including the CPU, SRA
 #### 1. Top Level RTL Schematic
 Synthesis result of the entire system (Level-0 Wrapper):
 
-![Top Level RTL Schematic](TOP%20LEVEL%20SCHEMATIC.png)
+![Top Level RTL Schematic](images/TOP%20LEVEL%20SCHEMATIC.png)
 *(Figure 4.2: Post-synthesis RTL Schematic of picorv32_top)*
 
 #### 2. MMIO Bus & Address Decoding
 The `picorv32_mmio_bus` module handles address decoding and routes data between the CPU and peripherals (SRAM, UART, LED).
 
-![MMIO Bus Schematic](MIMO%20BUS%20AND%20ADDRESS%20DECODING%20SCHEMATIC.png)
+![MMIO Bus Schematic](images/MIMO%20BUS%20AND%20ADDRESS%20DECODING%20SCHEMATIC.png)
 *(Figure 4.3: Detailed RTL Schematic of MMIO Bus and Address Decoder)*
 
 ### 🔄 Operation Flow (Loopback Test)
@@ -67,13 +67,13 @@ The firmware performs a "Loopback" test to verify system integrity:
 4.  **Transmit:** Read data back from SRAM and send it to PC via UART TX.
 5.  **Finish:** Write `0xAA` to LEDs.
 
-![Firmware Processing Flow](Processing%20flow%20.png)
+![Firmware Processing Flow](images/Processing%20flow%20.png)
 *(Figure 4.7: Firmware Processing Flowchart)*
 
 ### 📊 FPGA Resource Utilization
 Post-synthesis resource usage:
 
-![FPGA Resource Utilization](FPGA%20RESOURCE%20UTILISATION%20AFTER%20SYNTHESIS.png)
+![FPGA Resource Utilization](images/FPGA%20RESOURCE%20UTILISATION%20AFTER%20SYNTHESIS.png)
 *(Table 1: FPGA Resource Utilization after Synthesis)*
 
 * **PicoRV32 CPU:** Consumes the majority of logic resources (927 LUTs).
@@ -191,3 +191,4 @@ Bảng dưới đây thống kê tài nguyên sử dụng trên FPGA sau khi t�
 
 ---
 © 2026 Logic Design Project - HCMUT
+
